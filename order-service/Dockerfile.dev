@@ -1,0 +1,24 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install build dependencies
+COPY package*.json ./
+
+# Install deps (production + dev) so hot-reload tools are available in container
+RUN npm i
+
+# Copy only necessary files for prisma generate (package.json already copied)
+COPY prisma ./prisma
+
+# Generate Prisma client (will be re-run in entrypoint to pick up schema changes)
+RUN npx prisma generate || true
+
+# Expose port used by the app (gRPC + HTTP). Adjust if needed.
+EXPOSE 50051 3000
+
+# Use a small entrypoint script to ensure prisma generate/push runs then start dev server
+COPY ./docker-entrypoint.dev.sh /usr/local/bin/docker-entrypoint.dev.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.dev.sh
+
+CMD ["/usr/local/bin/docker-entrypoint.dev.sh"]

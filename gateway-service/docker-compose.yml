@@ -1,0 +1,23 @@
+services:
+  gateway-service:
+    build: .
+    ports:
+      - '${PORT}:${PORT}'
+    environment:
+      PORT: ${PORT}
+      ORDERS_SERVICE_URL: ${DOCKER_ORDERS_SERVICE_URL}
+      INVENTORY_SERVICE_URL: ${DOCKER_INVENTORY_SERVICE_URL}
+      USERS_SERVICE_URL: ${DOCKER_USERS_SERVICE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    networks:
+      - e_com_network
+
+volumes:
+  inventory_service_data:
+
+networks:
+  e_com_network:
+    external: true

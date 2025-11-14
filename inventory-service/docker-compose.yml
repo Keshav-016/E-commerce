@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - '${POSTGRES_PORT}:5432'
+    volumes:
+      - inventory_service_data:/var/lib/postgresql/data
+    networks:
+      - e_com_network
+
+  inventory-service:
+    build: .
+    ports:
+      - '${INVENTORY_SERVICE_PORT}:${INVENTORY_SERVICE_PORT}'
+    environment:
+      DATABASE_URL: ${DOCKER_DATABASE_URL}
+      PORT: ${INVENTORY_SERVICE_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      INVENTORY_SERVICE_PORT: ${INVENTORY_SERVICE_PORT}
+      ORDER_GRPC_HOST: order-service
+      ORDER_GRPC_PORT: 50052
+    depends_on:
+      - postgres
+    volumes:
+      - ./:/app # Mounts your local project directory => # ./dist:/usr/src/app/ for production
+      - /app/node_modules # An empty anonymous volume to "hide" the local node_modules
+    networks:
+      - e_com_network
+
+volumes:
+  inventory_service_data:
+
+networks:
+  e_com_network:
+    external: true

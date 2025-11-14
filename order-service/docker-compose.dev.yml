@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  order-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - '${ORDER_SERVICE_PORT}:${ORDER_SERVICE_PORT}'
+      - '50051:50051'
+    environment:
+      - DATABASE_URL=${DOCKER_DATABASE_URL}
+      - PORT=${ORDER_SERVICE_PORT}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - ORDER_SERVICE_PORT=${ORDER_SERVICE_PORT}
+      - PRISMA_AUTO_PUSH=true
+      - INVENTORY_SERVICE_ADDR=inventory-service:50052
+    volumes:
+      - ./:/app:delegated
+      - /app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - e_com_network
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - '${POSTGRES_PORT}:5432'
+    volumes:
+      - order-service-data:/var/lib/postgresql/data
+    networks:
+      - e_com_network
+
+volumes:
+  order-service-data:
+
+networks:
+  e_com_network:
+    external: true
