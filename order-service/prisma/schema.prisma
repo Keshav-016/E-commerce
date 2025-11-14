@@ -24,8 +24,7 @@ enum OrderStatus {
 
 model Order {
   id              String      @id @default(uuid())
-  customerId      String
-  customerEmail   String? 
+  userId          String
   
   status          OrderStatus @default(PENDING)
   

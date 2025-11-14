@@ -1,13 +1,20 @@
 import prisma from '../utils/db';
-interface Product {
-  id: string;
-  qty: number;
-}
+
 class InventoryService {
   constructor() {}
-  async CheckAndReserveInventory(products: Product[]) {
+  async CheckAndReserveInventory(userId: string) {
     try {
-      const productIds = products.map((product: any) => product.id);
+      console.log(userId);
+      const cart = await prisma.cart.findFirst({
+        where: { userId },
+        include: {
+          cartItems: true,
+        },
+      });
+      if (!cart) {
+        throw new Error('Cart not found');
+      }
+      const productIds = cart?.cartItems.map((product: any) => product.productId);
       const inventoryProducts = await prisma.inventory.findMany({
         where: { id: { in: productIds } },
       });
@@ -16,8 +23,8 @@ class InventoryService {
       }
       const updatedProducts = [];
       let hasInsufficientStock = false;
-      for (const orderProduct of products) {
-        const inventoryProduct = inventoryProducts.find((inv) => inv.id === orderProduct.id);
+      for (const orderProduct of cart?.cartItems) {
+        const inventoryProduct = inventoryProducts.find((inv) => inv.id === orderProduct.productId);
         if (!inventoryProduct) continue;
         let actualQty = orderProduct.qty;
         if (inventoryProduct.qty < orderProduct.qty) {
@@ -26,11 +33,11 @@ class InventoryService {
         }
         const newQty = inventoryProduct.qty - actualQty;
         await prisma.inventory.update({
-          where: { id: orderProduct.id },
+          where: { id: orderProduct.productId },
           data: { qty: newQty },
         });
         updatedProducts.push({
-          id: orderProduct.id,
+          id: orderProduct.productId,
           requestedQty: orderProduct.qty,
           actualQty,
           availableQty: newQty,
@@ -38,6 +45,7 @@ class InventoryService {
           price: inventoryProduct.price,
         });
       }
+      return { updatedProducts, hasInsufficientStock };
     } catch (error) {
       throw error;
     }

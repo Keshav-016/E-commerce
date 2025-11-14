@@ -33,7 +33,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
       });
     }
     const user = decoded as User;
-    req.headers['userid'] = user?.userId;
+    req.headers['user-id'] = user?.userId;
     req.headers['role'] = user?.role;
     next();
   });
@@ -51,7 +51,7 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction) =>
   jwt.verify(token, jwtSecret, (err, decoded) => {
     if (!err) {
       const user = decoded as User;
-      req.headers['userid'] = user?.userId;
+      req.headers['user-id'] = user?.userId;
       req.headers['role'] = user?.role;
     }
     next();

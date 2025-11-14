@@ -32,8 +32,7 @@ message ProductDetail {
 }
 
 message InventoryRequest {
-  string orderId = 1;
-  repeated Product products = 2;
+  string userId = 1;
 }
 
 message UpdatedProduct {
@@ -46,10 +45,9 @@ message UpdatedProduct {
 }
 
 message InventoryResponse {
-  string orderId = 1;
-  string status = 2; // "fulfilled" or "partial_fulfillment"
-  string message = 3;
-  repeated UpdatedProduct products = 4;
+  string status = 1; // "fulfilled" or "partial_fulfillment"
+  string message = 2;
+  repeated UpdatedProduct products = 3;
 }
 
 message GetProductRequest {

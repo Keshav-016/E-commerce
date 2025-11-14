@@ -11,8 +11,6 @@ export class InventoryGrpcClient {
   private client: any;
 
   constructor() {
-    // You'll need to get the inventory.proto from the inventory service
-    // For now, we'll create the proto definition inline or load it
     this.initializeClient();
   }
 
@@ -20,13 +18,7 @@ export class InventoryGrpcClient {
     // Load inventory proto file
     const INVENTORY_PROTO_PATH = path.join(__dirname, '../../protos/inventory-client.proto');
 
-    const packageDefinition = protoLoader.loadSync(INVENTORY_PROTO_PATH, {
-      keepCase: true,
-      longs: String,
-      enums: String,
-      defaults: true,
-      oneofs: true,
-    });
+    const packageDefinition = protoLoader.loadSync(INVENTORY_PROTO_PATH, {});
 
     const inventoryProto = grpc.loadPackageDefinition(packageDefinition).inventory as any;
 
@@ -34,9 +26,9 @@ export class InventoryGrpcClient {
     this.client = new inventoryProto.InventoryService(target, grpc.credentials.createInsecure());
   }
 
-  async checkAndReserveInventory(orderId: string, products: Array<{ id: string; qty: number }>) {
+  async checkAndReserveInventory(userId: string) {
     return new Promise((resolve, reject) => {
-      this.client.CheckAndReserveInventory({ orderId, products }, (error: any, response: any) => {
+      this.client.CheckAndReserveInventory({ userId }, (error: any, response: any) => {
         if (error) {
           reject(error);
           return;

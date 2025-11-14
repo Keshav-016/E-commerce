@@ -5,7 +5,7 @@ class CartController {
   async manageCartItem(req: Request, res: Response) {
     try {
       const { productId, qty } = req.body;
-      const userId = req.headers['userid'] as string;
+      const userId = req.headers['user-id'] as string;
 
       if (!productId || qty === undefined || !userId) {
         return res.status(400).json({

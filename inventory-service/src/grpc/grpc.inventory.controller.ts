@@ -16,24 +16,22 @@ const inventoryProto = grpc.loadPackageDefinition(packageDefinition).inventory a
 const grpcInventoryController = {
   async CheckAndReserveInventory(call: any, callback: any) {
     try {
-      const { orderId, products } = call.request;
-      if (!products || products.length === 0) {
-        throw new Error('No products provided');
+      const { userId } = call.request;
+      if (!userId) {
+        throw new Error('User ID is required');
       }
 
-      await inventoryService.CheckAndReserveInventory(products);
-      const updatedProducts = products.map(products);
-      const hasInsufficientStock = updatedProducts.some(
-        (product: any) => product.actualQty < product.requestedQty
-      );
+      const data = await inventoryService.CheckAndReserveInventory(userId);
+      if (!data) {
+        throw new Error('Internal server error');
+      }
 
       callback(null, {
-        orderId,
-        status: hasInsufficientStock ? 'partial_fulfillment' : 'fulfilled',
-        message: hasInsufficientStock
+        status: data.hasInsufficientStock ? 'partial_fulfillment' : 'fulfilled',
+        message: data.hasInsufficientStock
           ? 'Some products had insufficient stock'
           : 'All products successfully reserved',
-        products: updatedProducts,
+        products: data.updatedProducts,
       });
     } catch (error) {
       console.error('Error in CheckAndReserveInventory:', error);

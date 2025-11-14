@@ -34,7 +34,7 @@ model Inventory{
 
 model Cart {
   id         String      @id @default(uuid())
-  userId     String
+  userId     String      @unique
   cartItems  CartItem[]
 }
 
