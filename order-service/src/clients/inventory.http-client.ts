@@ -37,30 +37,6 @@ export class InventoryGrpcClient {
       });
     });
   }
-
-  async getProduct(productId: string) {
-    return new Promise((resolve, reject) => {
-      this.client.GetProduct({ id: productId }, (error: any, response: any) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(response);
-      });
-    });
-  }
-
-  async getAllProducts() {
-    return new Promise((resolve, reject) => {
-      this.client.GetAllProducts({}, (error: any, response: any) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(response);
-      });
-    });
-  }
 }
 
 export default new InventoryGrpcClient();

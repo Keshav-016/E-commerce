@@ -4,7 +4,6 @@ class InventoryService {
   constructor() {}
   async CheckAndReserveInventory(userId: string) {
     try {
-      console.log(userId);
       const cart = await prisma.cart.findFirst({
         where: { userId },
         include: {

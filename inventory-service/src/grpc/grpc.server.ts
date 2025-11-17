@@ -17,6 +17,5 @@ server.bindAsync(
       process.exit(1);
     }
     console.log(`🚀 gRPC Server running on ${host}:${actualPort}`);
-    server.start();
   }
 );

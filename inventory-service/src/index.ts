@@ -1,6 +1,6 @@
 import env from '../env.js';
 import app from './express-server';
-import './grpc/server';
+import './grpc/grpc.server.js';
 
 const PORT = env.PORT;
 

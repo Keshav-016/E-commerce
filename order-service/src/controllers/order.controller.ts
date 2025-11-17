@@ -37,9 +37,13 @@ class OrderController {
           orderItems: true,
         },
       });
+      inventoryResponse.products?.map((item: any) => {
+        item.totalPrice = item.actualQty * item.price;
+      });
+
       return res.status(400).json({
-        message: inventoryResponse.message,
-        order,
+        inventoryResponse,
+        totalAmount,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Internal server error';

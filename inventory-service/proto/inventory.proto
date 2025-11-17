@@ -5,30 +5,6 @@ package inventory;
 service InventoryService {
   // Check and (partially) reserve inventory for an order
   rpc CheckAndReserveInventory(InventoryRequest) returns (InventoryResponse);
-
-  // Get product details by id
-  rpc GetProduct(GetProductRequest) returns (ProductResponse);
-
-  // Update product quantity
-  rpc UpdateProductQuantity(UpdateQuantityRequest) returns (UpdateQuantityResponse);
-
-  // Get all products
-  rpc GetAllProducts(Empty) returns (ProductListResponse);
-}
-
-message Empty {}
-
-message Product {
-  string id = 1;
-  int32 qty = 2;
-}
-
-message ProductDetail {
-  string id = 1;
-  string name = 2;
-  string description = 3;
-  double price = 4;
-  int32 qty = 5;
 }
 
 message InventoryRequest {
@@ -48,28 +24,4 @@ message InventoryResponse {
   string status = 1; // "fulfilled" or "partial_fulfillment"
   string message = 2;
   repeated UpdatedProduct products = 3;
-}
-
-message GetProductRequest {
-  string id = 1;
-}
-
-message ProductResponse {
-  ProductDetail product = 1;
-  bool found = 2;
-}
-
-message UpdateQuantityRequest {
-  string id = 1;
-  int32 newQty = 2;
-}
-
-message UpdateQuantityResponse {
-  bool success = 1;
-  string message = 2;
-  ProductDetail product = 3;
-}
-
-message ProductListResponse {
-  repeated ProductDetail products = 1;
 }
