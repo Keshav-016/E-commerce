@@ -132,17 +132,10 @@ class CartController {
   // Get cart contents
   async getCart(req: Request, res: Response) {
     try {
-      const { cartId } = req.params;
-
-      if (!cartId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Cart ID is required',
-        });
-      }
+      const userId = req.headers['user-id'] as string;
 
       const cart = await prisma.cart.findUnique({
-        where: { id: cartId },
+        where: { userId },
         include: {
           cartItems: {
             include: {
@@ -177,7 +170,7 @@ class CartController {
 
       res.status(200).json({
         success: true,
-        cartId,
+        cartId: cart.id,
         userId: cart.userId,
         items: cartSummary,
         summary: {

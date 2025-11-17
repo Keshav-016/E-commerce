@@ -26,9 +26,9 @@ export class InventoryGrpcClient {
     this.client = new inventoryProto.InventoryService(target, grpc.credentials.createInsecure());
   }
 
-  async checkAndReserveInventory(userId: string) {
+  async checkAndReserveInventory(userId: string, orderId: string) {
     return new Promise((resolve, reject) => {
-      this.client.CheckAndReserveInventory({ userId }, (error: any, response: any) => {
+      this.client.CheckAndReserveInventory({ userId, orderId }, (error: any, response: any) => {
         if (error) {
           reject(error);
           return;

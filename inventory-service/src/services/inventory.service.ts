@@ -2,49 +2,82 @@ import prisma from '../utils/db';
 
 class InventoryService {
   constructor() {}
-  async CheckAndReserveInventory(userId: string) {
+  async CheckAndReserveInventory(userId: string, orderId: string) {
     try {
-      const cart = await prisma.cart.findFirst({
-        where: { userId },
-        include: {
-          cartItems: true,
-        },
-      });
-      if (!cart) {
-        throw new Error('Cart not found');
-      }
-      const productIds = cart?.cartItems.map((product: any) => product.productId);
-      const inventoryProducts = await prisma.inventory.findMany({
-        where: { id: { in: productIds } },
-      });
-      if (inventoryProducts.length !== productIds.length) {
-        throw new Error('Invalid product Data');
-      }
-      const updatedProducts = [];
-      let hasInsufficientStock = false;
-      for (const orderProduct of cart?.cartItems) {
-        const inventoryProduct = inventoryProducts.find((inv) => inv.id === orderProduct.productId);
-        if (!inventoryProduct) continue;
-        let actualQty = orderProduct.qty;
-        if (inventoryProduct.qty < orderProduct.qty) {
-          actualQty = inventoryProduct.qty;
-          hasInsufficientStock = true;
+      // Use Prisma transaction to ensure atomicity
+      return await prisma.$transaction(async (tx) => {
+        // Fetch cart with items
+        const cart = await tx.cart.findFirst({
+          where: { userId },
+          include: {
+            cartItems: true,
+          },
+        });
+
+        if (!cart) {
+          throw new Error('Cart not found');
         }
-        const newQty = inventoryProduct.qty - actualQty;
-        await prisma.inventory.update({
-          where: { id: orderProduct.productId },
-          data: { qty: newQty },
+
+        const productIds = cart.cartItems.map((product: any) => product.productId);
+
+        // Fetch inventory products
+        const inventoryProducts = await tx.inventory.findMany({
+          where: { id: { in: productIds } },
         });
-        updatedProducts.push({
-          id: orderProduct.productId,
-          requestedQty: orderProduct.qty,
-          actualQty,
-          availableQty: newQty,
-          name: inventoryProduct.name,
-          price: inventoryProduct.price,
+
+        if (inventoryProducts.length !== productIds.length) {
+          throw new Error('Invalid product Data');
+        }
+
+        const updatedProducts = [];
+        let hasInsufficientStock = false;
+
+        // Process each cart item and update inventory
+        for (const orderProduct of cart.cartItems) {
+          const inventoryProduct = inventoryProducts.find(
+            (inv) => inv.id === orderProduct.productId
+          );
+          if (!inventoryProduct) continue;
+
+          let actualQty = orderProduct.qty;
+          if (inventoryProduct.qty < orderProduct.qty) {
+            actualQty = inventoryProduct.qty;
+            hasInsufficientStock = true;
+          }
+
+          const newQty = inventoryProduct.qty - actualQty;
+
+          // Update inventory within transaction
+          await tx.inventory.update({
+            where: { id: orderProduct.productId },
+            data: { qty: newQty },
+          });
+
+          updatedProducts.push({
+            id: orderProduct.productId,
+            requestedQty: orderProduct.qty,
+            actualQty,
+            availableQty: newQty,
+            name: inventoryProduct.name,
+            price: inventoryProduct.price,
+          });
+        }
+
+        // Create reserved stock within transaction
+        await tx.reservedStock.create({
+          data: {
+            orderId,
+            products: {
+              create: updatedProducts.map((product) => ({
+                productId: product.id,
+                qty: product.actualQty,
+              })),
+            },
+          },
         });
-      }
-      return { updatedProducts, hasInsufficientStock };
+
+        return { updatedProducts, hasInsufficientStock };
+      });
     } catch (error) {
       throw error;
     }

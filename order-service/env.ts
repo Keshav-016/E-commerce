@@ -7,6 +7,15 @@ const env = cleanEnv(process.env, {
   POSTGRES_PORT: port({ default: 5434 }),
 
   ORDER_SERVICE_PORT: port({ default: 5700 }),
+  // Kafka configuration
+  KAFKA_BROKERS: str({
+    default: 'kafka:9092',
+    desc: 'Kafka broker addresses (comma-separated)',
+  }),
+  KAFKA_CLIENT_ID: str({
+    default: 'order-service',
+    desc: 'Kafka client identifier',
+  }),
 
   DATABASE_URL: str({
     default: 'postgresql://user:password@postgres:5434/orderdb',

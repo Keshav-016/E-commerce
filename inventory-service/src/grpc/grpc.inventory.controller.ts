@@ -16,12 +16,12 @@ const inventoryProto = grpc.loadPackageDefinition(packageDefinition).inventory a
 const grpcInventoryController = {
   async CheckAndReserveInventory(call: any, callback: any) {
     try {
-      const { userId } = call.request;
+      const { userId, orderId } = call.request;
       if (!userId) {
         throw new Error('User ID is required');
       }
 
-      const data = await inventoryService.CheckAndReserveInventory(userId);
+      const data = await inventoryService.CheckAndReserveInventory(userId, orderId);
       if (!data) {
         throw new Error('Internal server error');
       }

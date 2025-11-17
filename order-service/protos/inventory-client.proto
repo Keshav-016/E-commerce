@@ -9,6 +9,7 @@ service InventoryService {
 
 message InventoryRequest {
   string userId = 1;
+  string orderId = 2;
 }
 
 message UpdatedProduct {
@@ -22,7 +23,8 @@ message UpdatedProduct {
 
 message InventoryResponse {
   string status = 1; // "fulfilled" or "partial_fulfillment"
-  string message = 2;
-  repeated UpdatedProduct products = 3;
+  string orderId = 2;
+  string message = 3;
+  repeated UpdatedProduct products = 4;
 }
 

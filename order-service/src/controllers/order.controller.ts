@@ -1,17 +1,23 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/db';
-import inventoryClient from '../clients/inventory.http-client';
+import inventoryClient from '../grpc/inventory.http-client';
 import { OrderStatus } from '../utils/enums';
+import kafkaService from '../kafka/kafka.service';
 
 class OrderController {
   createOrder = async (req: Request, res: Response) => {
+    let success = true;
+    const orderId = Date.now().toString();
+    let userId = '';
     try {
-      const userId = req.headers['user-id'] as string;
-      console.log(userId);
+      userId = req.headers['user-id'] as string;
       const { shippingAddress } = req.body;
 
       // Check and reserve inventory using gRPC
-      const inventoryResponse: any = await inventoryClient.checkAndReserveInventory(userId);
+      const inventoryResponse: any = await inventoryClient.checkAndReserveInventory(
+        userId,
+        orderId
+      );
 
       const totalAmount = inventoryResponse.products?.reduce(
         (sum: number, item: any) => sum + item.actualQty * item.price,
@@ -47,7 +53,14 @@ class OrderController {
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Internal server error';
+      success = false;
       return res.status(500).json({ error: message });
+    } finally {
+      kafkaService.send('orders', {
+        orderId,
+        userId,
+        success,
+      });
     }
   };
 

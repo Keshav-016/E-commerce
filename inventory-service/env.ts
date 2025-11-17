@@ -20,6 +20,16 @@ const env = cleanEnv(process.env, {
   }),
   GRPC_PORT: port({ default: 50052 }),
 
+  // Kafka configuration
+  KAFKA_BROKERS: str({
+    default: 'kafka:9092',
+    desc: 'Kafka broker addresses (comma-separated)',
+  }),
+  KAFKA_CLIENT_ID: str({
+    default: 'inventory-service',
+    desc: 'Kafka client identifier',
+  }),
+
   PORT: port({ default: 5600 }),
   // gRPC target for OrderService (use Docker service name when containerized)
   ORDER_GRPC_HOST: str({ default: 'order-service' }),
