@@ -23,6 +23,7 @@ class OrderController {
         (sum: number, item: any) => sum + item.actualQty * item.price,
         0
       );
+      throw new Error('Internal server error');
 
       const order = await prisma.order.create({
         data: {
@@ -56,7 +57,7 @@ class OrderController {
       success = false;
       return res.status(500).json({ error: message });
     } finally {
-      kafkaService.send('orders', {
+      kafkaService.send('order.created', {
         orderId,
         userId,
         success,

@@ -14,8 +14,8 @@ class InventoryService {
           },
         });
 
-        if (!cart) {
-          throw new Error('Cart not found');
+        if (!cart || cart?.cartItems.length === 0) {
+          throw new Error('Cart is empty');
         }
 
         const productIds = cart.cartItems.map((product: any) => product.productId);
@@ -64,7 +64,7 @@ class InventoryService {
         }
 
         // Create reserved stock within transaction
-        await tx.reservedStock.create({
+        const reservedStock = await tx.reservedStock.create({
           data: {
             orderId,
             products: {
@@ -74,8 +74,10 @@ class InventoryService {
               })),
             },
           },
+          include: {
+            products: true,
+          },
         });
-
         return { updatedProducts, hasInsufficientStock };
       });
     } catch (error) {
