@@ -23,7 +23,6 @@ class OrderController {
         (sum: number, item: any) => sum + item.actualQty * item.price,
         0
       );
-      throw new Error('Internal server error');
 
       const order = await prisma.order.create({
         data: {
