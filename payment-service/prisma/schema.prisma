@@ -1,0 +1,78 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Payment {
+  id              String       @id @default(uuid())
+  parentOrderId   String?      // master order id
+  subOrderId      String?      // child/suborder id (if applicable)
+  userId          String
+  amountCents     Int
+  currency        String       @default("INR")
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  gatewayRef      String?      // external gateway transaction id
+  idempotencyKey  String?      @unique
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  transactions    Transaction[]
+  refunds         Refund[]
+}
+
+model Transaction {
+  id           String       @id @default(uuid())
+  paymentId    String
+  provider     String       // e.g., razorpay, stripe, cod-collect
+  providerRef  String?      // gateway transaction id
+  amountCents  Int
+  status       TransactionStatus
+  attempt      Int          @default(1)
+  meta         Json?
+  createdAt    DateTime     @default(now())
+
+  payment      Payment      @relation(fields: [paymentId], references: [id])
+}
+
+model Refund {
+  id           String    @id @default(uuid())
+  paymentId    String
+  amountCents  Int
+  providerRef  String?
+  status       RefundStatus @default(PENDING)
+  createdAt    DateTime  @default(now())
+
+  payment      Payment   @relation(fields: [paymentId], references: [id])
+}
+
+enum PaymentMethod {
+  ONLINE
+  COD
+  WALLET
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  COMPLETED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum RefundStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}

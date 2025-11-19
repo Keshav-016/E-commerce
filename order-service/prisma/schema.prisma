@@ -13,13 +13,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enums
 enum OrderStatus {
   PENDING
   CONFIRMED
+  PARTIALLY_DELIVERED
   DELIVERED
   CANCELLED
 }
+
+enum SubOrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum PaymentMethod {
+  COD
+  UPI
+  CARD
+  NETBANKING
+}
+
 
 
 model Order {
@@ -29,6 +52,7 @@ model Order {
   status          OrderStatus @default(PENDING)
   
   totalAmount     Float
+  paymentStatus   PaymentStatus @default(PENDING)
   
   shippingAddress String
   
@@ -50,6 +74,10 @@ model OrderItem {
   quantity        Int
   unitPrice       Float
   totalPrice      Float
+  status          SubOrderStatus @default(PENDING)
+
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
